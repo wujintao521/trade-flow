@@ -1,0 +1,49 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: trade-flow-auth-server
+
+  profiles:
+    default: dev
+
+  config:
+    import:
+      - "nacos:trade-flow-auth-server.yaml?group=TRADE_FLOW&refreshEnabled=false"
+
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: trade-flow-dev
+        group: TRADE_FLOW
+        username: nacos
+        password: wjtnacos
+
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: trade-flow-dev
+        group: TRADE_FLOW
+        username: nacos
+        password: wjtnacos
+  flyway:
+    #读取脚本目录
+    locations: classpath:migration
+    table: flyway_auth_schema_history
+    baseline-version: "0"
+    baseline-on-migrate: false
+    validate-on-migrate: true
+    clean-disabled: true
+    fail-on-missing-locations: true
+mybatis:
+  mapper-locations: classpath*:mapper/*.xml
+trade:
+  auth:
+    jwt:
+      issuer: "http://127.0.0.1:9000"
+      audience: "trade-flow-api"
+      key-id: "trade-flow-auth-rsa-1"
+      access-token-ttl: 15m
+      private-key-location: ${TRADE_AUTH_JWT_PRIVATE_KEY_LOCATION}
+      public-key-location: ${TRADE_AUTH_JWT_PUBLIC_KEY_LOCATION}

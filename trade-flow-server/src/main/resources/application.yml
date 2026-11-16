@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: trade-flow-server
+
+  profiles:
+    default: dev
+
+  config:
+    import:
+      - "nacos:trade-flow-server.yaml?group=TRADE_FLOW&refreshEnabled=false"
+
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: trade-flow-dev
+        group: TRADE_FLOW
+        username: nacos
+        password: wjtnacos
+
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: trade-flow-dev
+        group: TRADE_FLOW
+        username: nacos
+        password: wjtnacos
+
+mybatis:
+  mapper-locations: classpath*:mapper/*.xml

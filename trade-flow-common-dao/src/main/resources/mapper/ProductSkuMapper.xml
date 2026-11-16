@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trade.dao.product.ProductSkuMapper">
+
+    <resultMap id="productSkuMap" type="com.trade.entity.product.ProductSku">
+        <constructor>
+            <idArg column="id" javaType="java.lang.Long"/>
+            <arg column="sku_code" javaType="java.lang.String"/>
+            <arg column="sku_name" javaType="java.lang.String"/>
+            <arg column="sale_price" javaType="java.math.BigDecimal"/>
+            <arg column="sale_status" javaType="com.trade.enums.product.SkuSaleStatus"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectOnSaleById" resultMap="productSkuMap">
+        SELECT id, sku_code, sku_name, sale_price, sale_status
+        FROM product_sku
+        WHERE id = #{skuId}
+        AND sale_status = 'ON_SALE'
+    </select>
+
+    <select id="selectOnSaleByIds" resultMap="productSkuMap">
+        SELECT id, sku_code, sku_name, sale_price, sale_status
+        FROM product_sku
+        WHERE sale_status = 'ON_SALE'
+        <choose>
+            <when test="skuIds != null and !skuIds.isEmpty()">
+                AND id IN
+                <foreach collection="skuIds" item="skuId" open="(" separator="," close=")">
+                    #{skuId}
+                </foreach>
+            </when>
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+        </choose>
+        ORDER BY id ASC
+    </select>
+
+</mapper>

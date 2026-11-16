@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.trade</groupId>
+    <artifactId>trade-flow</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>TradeFlow</name>
+    <description>交易业务平台</description>
+    <modules>
+        <module>trade-flow-parent</module>
+        <module>trade-flow-server</module>
+        <module>trade-flow-entity</module>
+        <module>trade-flow-common-service</module>
+        <module>trade-flow-utils</module>
+        <module>trade-flow-common-dao</module>
+        <module>trade-flow-auth-server</module>
+        <module>trade-flow-gateway</module>
+    </modules>
+</project>

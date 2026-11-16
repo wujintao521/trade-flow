@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trade.dao.auth.AuthUserMapper">
+
+    <resultMap id="authUserMap" type="com.trade.entity.auth.AuthUser">
+        <constructor>
+            <idArg column="id" javaType="java.lang.Long"/>
+            <arg column="username" javaType="java.lang.String"/>
+            <arg column="password_hash" javaType="java.lang.String"/>
+            <arg column="display_name" javaType="java.lang.String"/>
+            <arg column="status" javaType="java.lang.Integer"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="authUserProfileMap" type="com.trade.model.auth.AuthUserProfile">
+        <constructor>
+            <idArg column="id" javaType="java.lang.Long"/>
+            <arg column="username" javaType="java.lang.String"/>
+            <arg column="display_name" javaType="java.lang.String"/>
+            <arg column="status" javaType="java.lang.Integer"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectProfileById" resultMap="authUserProfileMap">
+        SELECT id, username, display_name, status
+        FROM auth_user
+        WHERE id = #{userId}
+    </select>
+
+    <select id="selectByUsername" resultMap="authUserMap">
+        SELECT
+            id, username,
+            password_hash,
+            display_name, status
+            FROM auth_user
+        WHERE username = #{username}
+    </select>
+
+    <select id="selectRoleCodesByUserId" resultType="java.lang.String">
+        SELECT r.role_code
+        FROM auth_user_role ur
+        JOIN auth_role r ON r.id = ur.role_id
+        WHERE ur.user_id = #{userId}
+    </select>
+
+</mapper>
