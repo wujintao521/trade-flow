@@ -58,6 +58,9 @@ public class AuthJwtConfiguration {
         return builder.build();
     }
 
+    /**
+     * 定义jwt验证规则
+     */
     @Bean
     public JwtDecoder jwtDecoder(AuthJwtProperties properties, RSAPublicKey jwtPublicKey) {
         NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(jwtPublicKey).signatureAlgorithm(SignatureAlgorithm.RS256).build();

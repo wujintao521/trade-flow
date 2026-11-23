@@ -38,6 +38,9 @@ public class AuthSecurityConfiguration {
         return new ProviderManager(daoAuthenticationProvider);
     }
 
+    /**
+     * 设置安全过滤链 规定接口如何访问 jwt如何验证 认证失败如何响应
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtDecoder jwtDecoder, AuthJwtAuthenticationConverter jwtConverter, AuthSecurityExceptionHandler errorHandler) throws Exception {
 
@@ -50,9 +53,9 @@ public class AuthSecurityConfiguration {
         http.logout(logout -> logout.disable());
 
         http.authorizeHttpRequests(authorize -> {
-            authorize.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll();
+            authorize.requestMatchers(HttpMethod.POST, "/login").permitAll();
             authorize.requestMatchers(HttpMethod.GET, "/internal/actuator/health", "/internal/actuator/health/liveness", "/internal/actuator/health/readiness").permitAll();
-            authorize.requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated();
+            authorize.requestMatchers(HttpMethod.GET, "/me").authenticated();
             authorize.anyRequest().denyAll();
         });
 

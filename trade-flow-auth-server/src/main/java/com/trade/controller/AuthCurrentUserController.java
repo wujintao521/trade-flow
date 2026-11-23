@@ -17,7 +17,6 @@ import java.util.Objects;
  * 查询当前登录用户的基本信息。
  */
 @RestController
-@RequestMapping("/api/auth")
 public class AuthCurrentUserController {
 
     private final AuthCurrentUserService authCurrentUserService;

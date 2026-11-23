@@ -28,5 +28,12 @@ spring:
         username: nacos
         password: wjtnacos
 
+trade:
+  security:
+    jwt:
+      issuer: "http://127.0.0.1:9000"
+      audience: "trade-flow-api"
+      public-key-location: ${TRADE_AUTH_JWT_PUBLIC_KEY_LOCATION}
+
 mybatis:
   mapper-locations: classpath*:mapper/*.xml
