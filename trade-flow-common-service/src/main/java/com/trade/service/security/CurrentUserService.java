@@ -1,13 +1,11 @@
-package com.trade.service.impl;
+package com.trade.service.security;
 
 import com.trade.common.exception.BusinessException;
 import com.trade.dao.auth.AuthUserMapper;
 import com.trade.enums.auth.AuthErrorCode;
 import com.trade.enums.auth.AuthUserStatus;
 import com.trade.model.auth.AuthUserProfile;
-import com.trade.response.auth.AuthCurrentUserResponse;
-import com.trade.security.AuthCurrentUser;
-import com.trade.service.AuthCurrentUserService;
+import com.trade.model.security.CurrentUser;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,20 +16,26 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Objects;
 
 /**
- * 根据已验证的用户 ID 加载资料，业务调用从当前请求上下文读取结果。
+ * 公共用户资料加载和当前请求身份读取入口。
  */
 @Service
-public class AuthCurrentUserServiceImpl implements AuthCurrentUserService {
+public class CurrentUserService {
 
     private final AuthUserMapper authUserMapper;
 
-    public AuthCurrentUserServiceImpl(AuthUserMapper authUserMapper) {
+    public CurrentUserService(AuthUserMapper authUserMapper) {
         this.authUserMapper = Objects.requireNonNull(authUserMapper, "authUserMapper");
     }
 
-    @Override
+    /**
+     * 在 JWT 验证通过后，根据用户 ID 加载资料并检查账号状态。
+     */
     @Transactional(readOnly = true)
     public AuthUserProfile loadProfile(Long userId) {
+
+        if (userId == null || userId <= 0) {
+            throw new InvalidBearerTokenException("访问令牌的用户标识无效");
+        }
 
         AuthUserProfile profile = authUserMapper.selectProfileById(userId);
 
@@ -42,15 +46,21 @@ public class AuthCurrentUserServiceImpl implements AuthCurrentUserService {
         return profile;
     }
 
-    @Override
-    public AuthCurrentUserResponse getCurrentUser() {
+    /**
+     * 从当前请求上下文读取用户对象，不再次查询数据库。
+     */
+    public CurrentUser getRequiredUser() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof AuthCurrentUser user)) {
+        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof CurrentUser user)) {
             throw new BusinessException(AuthErrorCode.INVALID_ACCESS_TOKEN.getCode(), "未登录或访问令牌无效");
         }
 
-        return new AuthCurrentUserResponse(user.userId(), user.username(), user.displayName(), user.roles());
+        return user;
+    }
+
+    public Long getRequiredUserId() {
+        return getRequiredUser().userId();
     }
 }

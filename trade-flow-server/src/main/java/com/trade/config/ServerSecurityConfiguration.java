@@ -1,7 +1,9 @@
 package com.trade.config;
 
+
 import com.trade.security.ServerSecurityExceptionHandler;
 
+import com.trade.service.security.CurrentUserJwtAuthenticationConverter;
 import jakarta.servlet.DispatcherType;
 
 import org.springframework.context.annotation.Bean;
@@ -11,19 +13,17 @@ import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * 业务服务独立校验 JWT，并保护已有商品查询接口。
+ * 业务服务独立校验 JWT，使用公共转换器创建当前用户身份。
  */
 @Configuration(proxyBeanMethods = false)
 public class ServerSecurityConfiguration {
 
     @Bean
-    public SecurityFilterChain serverSecurityFilterChain(HttpSecurity http, JwtDecoder serverJwtDecoder, ServerSecurityExceptionHandler errorHandler) throws Exception {
+    public SecurityFilterChain serverSecurityFilterChain(HttpSecurity http, JwtDecoder serverJwtDecoder, CurrentUserJwtAuthenticationConverter jwtConverter, ServerSecurityExceptionHandler errorHandler) throws Exception {
 
         http.csrf(csrf -> csrf.disable());
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -43,16 +43,10 @@ public class ServerSecurityConfiguration {
 
             authorize.requestMatchers(HttpMethod.POST, "/api/products/skus/batch-query").authenticated();
 
+            authorize.requestMatchers(HttpMethod.POST, "/api/orders/preview").authenticated();
+
             authorize.anyRequest().denyAll();
         });
-
-        // 将 JWT 中的 ADMIN 转换为 Spring Security 使用的 ROLE_ADMIN。
-        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        authoritiesConverter.setAuthoritiesClaimName("roles");
-        authoritiesConverter.setAuthorityPrefix("ROLE_");
-
-        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
-        jwtConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
 
         http.oauth2ResourceServer(resourceServer -> {
 

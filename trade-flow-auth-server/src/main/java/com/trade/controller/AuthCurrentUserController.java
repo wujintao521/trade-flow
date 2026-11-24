@@ -1,33 +1,34 @@
 package com.trade.controller;
 
 import com.trade.common.response.ApiResponse;
+import com.trade.model.security.CurrentUser;
 import com.trade.response.auth.AuthCurrentUserResponse;
-import com.trade.service.AuthCurrentUserService;
+import com.trade.service.security.CurrentUserService;
 
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Objects;
 
 /**
- * 查询当前登录用户的基本信息。
+ * 通过公共服务读取当前登录用户的基本信息。
  */
 @RestController
 public class AuthCurrentUserController {
 
-    private final AuthCurrentUserService authCurrentUserService;
+    private final CurrentUserService currentUserService;
 
-    public AuthCurrentUserController(AuthCurrentUserService authCurrentUserService) {
-        this.authCurrentUserService = Objects.requireNonNull(authCurrentUserService, "authCurrentUserService");
+    public AuthCurrentUserController(CurrentUserService currentUserService) {
+        this.currentUserService = Objects.requireNonNull(currentUserService, "currentUserService");
     }
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<AuthCurrentUserResponse>> getCurrentUser() {
-        AuthCurrentUserResponse user = authCurrentUserService.getCurrentUser();
-        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).header(HttpHeaders.PRAGMA, "no-cache").body(ApiResponse.success(user));
+        CurrentUser user = currentUserService.getRequiredUser();
+        AuthCurrentUserResponse response = new AuthCurrentUserResponse(user.userId(), user.username(), user.displayName(), user.roles());
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).header(HttpHeaders.PRAGMA, "no-cache").body(ApiResponse.success(response));
     }
 }

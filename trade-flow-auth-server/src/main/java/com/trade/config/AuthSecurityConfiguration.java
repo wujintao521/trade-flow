@@ -1,7 +1,8 @@
 package com.trade.config;
 
-import com.trade.security.AuthJwtAuthenticationConverter;
 import com.trade.security.AuthSecurityExceptionHandler;
+import com.trade.service.security.CurrentUserJwtAuthenticationConverter;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,33 +19,26 @@ import org.springframework.security.oauth2.server.resource.web.authentication.Be
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * 认证服务的账号密码认证配置。
+ * 认证服务的密码登录和 JWT 请求认证配置。
  */
 @Configuration(proxyBeanMethods = false)
 public class AuthSecurityConfiguration {
 
-    // 执行账号密码认证，调用用户加载服务和密码工具
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
-        // 需要查询用户信息时，调用传入的userDetailsService
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
 
-    // 认证入口接口
     @Bean
     public AuthenticationManager authenticationManager(DaoAuthenticationProvider daoAuthenticationProvider) {
         return new ProviderManager(daoAuthenticationProvider);
     }
 
-    /**
-     * 设置安全过滤链 规定接口如何访问 jwt如何验证 认证失败如何响应
-     */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtDecoder jwtDecoder, AuthJwtAuthenticationConverter jwtConverter, AuthSecurityExceptionHandler errorHandler) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtDecoder jwtDecoder, CurrentUserJwtAuthenticationConverter jwtConverter, AuthSecurityExceptionHandler errorHandler) throws Exception {
 
-        // 当前接口仅从 Authorization 请求头接收 Bearer Token，不使用 Cookie 登录态。
         http.csrf(csrf -> csrf.disable());
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.requestCache(cache -> cache.disable());
@@ -60,12 +54,14 @@ public class AuthSecurityConfiguration {
         });
 
         http.oauth2ResourceServer(resourceServer -> {
+
             resourceServer.jwt(jwt -> jwt.decoder(jwtDecoder).jwtAuthenticationConverter(jwtConverter));
+
             resourceServer.authenticationEntryPoint(errorHandler);
             resourceServer.accessDeniedHandler(errorHandler);
 
-            // 认证依赖异常也交给统一处理器返回 503，不继续向 Servlet 容器抛出。
             resourceServer.withObjectPostProcessor(new ObjectPostProcessor<BearerTokenAuthenticationFilter>() {
+
                 @Override
                 public <O extends BearerTokenAuthenticationFilter> O postProcess(O filter) {
                     filter.setAuthenticationFailureHandler(errorHandler::commence);
